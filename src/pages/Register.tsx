@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import qs from "qs";
-import { Cookies } from "react-cookie";
 import { connect } from "react-redux";
+import {Cookies} from "react-cookie";
 import store from "../redux-ts/store";
 import { setUserInfo } from "../redux-ts/actions";
 import {getRoles} from '../services/getRoles';
@@ -21,6 +21,7 @@ type Props = {
 
 const Register: React.FC<Props> = props => {
   const [form] = Form.useForm();
+
   let userid:number;
   let username:string;
   let userkey:string;
@@ -77,6 +78,41 @@ const Register: React.FC<Props> = props => {
     callRegister();
   };  
 
+  const successRegister = (response:any) => {
+    console.log(response);
+    if (!response) return;
+    
+    if (response && isRegister === false) {
+        setIsRegister(true);
+        
+        userid = response.id;
+        username = content.email;
+        userkey = content.password;
+
+        // invoke the Redux action-setUserID to set user id
+        if (userid && username && userkey) {
+          props.setUserInfo({
+            userID: userid,
+            userName: username,
+            password: userkey
+          });
+          console.log(store.getState());
+          userid = 0;
+          username = "";
+          userkey = "";
+
+          setIsRegister(false);
+
+          // const login = "http://localhost:3000/";
+          // window.location.href = login;
+        }
+      } else {
+        if (isRegister === true) {
+          setIsRegister(false);
+        }
+      }
+  }
+
   const callRegister = () => {
     console.log(content);
     setIsError(false);
@@ -85,42 +121,7 @@ const Register: React.FC<Props> = props => {
 
     register(content)
       .then((response) => {
-        if (response) {
-          if (response && isRegister === false) {
-            setIsRegister(true);
-            
-            userid = response.id;
-            username = content.email;
-            userkey = content.password;
-  
-            // save user id to cookie
-            const userIDCookie = new Cookies()
-            userIDCookie.set("userID", userid, { path: "/" })
-            userIDCookie.set("username", username, { path: "/" })
-
-            // invoke the Redux action-setUserID to set user id
-            if (userid && username && userkey) {
-              props.setUserInfo({
-                userID: userid,
-                userName: username,
-                password: userkey
-              });
-              console.log(store.getState());
-              userid = 0;
-              username = "";
-              userkey = "";
-
-              setIsRegister(false);
-
-              // const login = "http://localhost:3000/";
-              // window.location.href = login;
-            }
-          } else {
-            if (isRegister === true) {
-              setIsRegister(false);
-            }
-          }
-        }       
+        successRegister(response);     
       })
       .catch((error) => {
         setError(error);

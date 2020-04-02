@@ -5,7 +5,6 @@ import { Layout } from "antd";
 import LanguageDropdown from '../components/HeaderDropdown/LanguageDropdown';
 
 import "./LoginRegister.css";
-// import SAPLogo from "../assets/sap.svg";
 import Logo from '../assets/pandalogo.jpg';
 
 const { Header, Footer, Content } = Layout;

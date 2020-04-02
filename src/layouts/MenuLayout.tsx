@@ -27,7 +27,7 @@ const MenuLayout: React.FC<Props> = props => {
 
   useEffect(() => {
     renderMenu();
-  }); 
+  }, [menus]); 
 
   useEffect(() => {
     renderWindowHeight();
@@ -92,7 +92,7 @@ const MenuLayout: React.FC<Props> = props => {
 
     axios({
       method: "GET",
-      baseURL: "http://localhost:9000/api",
+      baseURL: "http://localhost:9001/api",
       url: "/menus",
       headers: {
         "content-type": "application/x-www-form-urlencoded"

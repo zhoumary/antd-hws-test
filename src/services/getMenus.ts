@@ -1,8 +1,8 @@
 import {request} from '../utils/request';
 
-export const getUser = (username:string | Blob, password:string | Blob, id:number) => {
+export const getMenus = (username:string, password:string, id:number) => {
     return request({
-        url:    '/api/v1/users/' + id,
+        url:    '/api/v1/menus/' + id,
         method: 'GET',
         auth: {
             username: username,

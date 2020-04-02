@@ -2,8 +2,8 @@
 export const SET_USERINFO = "SET_USERINFO";
 export interface UserInfo {
     userID: number;
-    userName: string;
-    password: string;
+    userName: string | Blob;
+    password: string | Blob;
 }
 interface UpdateUserInfoAction {
     type: typeof SET_USERINFO

@@ -1,17 +1,17 @@
 import React from "react";
-import { Cookies } from "react-cookie";
 import Services from '../../services/login';
+import store from "../../redux-ts/store";
 
 import { message, Menu, Dropdown } from "antd";
 
 const UserDropdown = () => {
-    const currCookie = new Cookies();
-    
     const logout = () => {
-    
+        const loginRegisterStore = store.getState().loginRegister;
+        const {userName, password} = loginRegisterStore;
+
         let bodyFormData = new FormData();
-        bodyFormData.append("username", currCookie.get("username"));
-        bodyFormData.append("password", currCookie.get("password"));
+        bodyFormData.append("username", userName);
+        bodyFormData.append("password", password);
 
         Services
             .logout(bodyFormData)

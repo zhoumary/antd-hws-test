@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
-import {Cookies} from "react-cookie";
 import {getUser} from '../services/getUser';
+import store from "../redux-ts/store";
 
 import {Card} from 'antd';
 
@@ -21,10 +21,9 @@ const Welcome = () => {
 
 
   const getUserInfo = () => {
-    const currCookie = new Cookies()
-    const userID = currCookie.get("userID")
-    const userName = currCookie.get("username")
-    const password = currCookie.get("password")
+    const userInfoStore = store.getState().loginRegister;
+    const {userID, userName, password} = userInfoStore;
+
     if (userID) {
       setIsError(false);
 

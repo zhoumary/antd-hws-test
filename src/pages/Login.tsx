@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 import { Cookies } from "react-cookie";
 import { connect } from "react-redux";
-import store from "../redux-ts/store";
 import { setUserInfo, setUserPermissions } from "../redux-ts/actions";
 import Services from '../services/login';
 
@@ -23,96 +22,78 @@ export const Login: React.FC<Props> = props => {
   const { t } = useTranslation();  
   const [form] = Form.useForm();
 
-  let userid:number;
-  let username:string;
-  let userkey:string;
-  let permissions:string[];
+  let userName:string | Blob;
+  let pass:string | Blob;
 
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
+  const [hasName, setHasName] = useState(false);
+  const [hasKey, setHasKey] = useState(false);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState("");
   const [isLogin, setIsLogin] = useState(false);
   const [canLogin, setCanLogin] = useState(true);
 
   const loginCookies = new Cookies();
+  
 
   useEffect(() => {
-    if (userName !== "" && password !== "" && canLogin === true) {
+    if (hasName === true && hasKey === true && canLogin === true) {
       setCanLogin(false);
-    } else if ((userName === "" || password === "") && canLogin === false) {
+    } else if ((hasName === false || hasKey === false) && canLogin === false) {
       setCanLogin(true);
     }
-  }, [userName, password, canLogin]);
+  }, [canLogin, hasName, hasKey]);
 
-  const onFinish = (event: {}) => {
-    // if the validation succed, invoke login function
-    login(event);
-  };
 
   const login = (event: {}) => {
     // call API to verify the Username and Password
     callLogin();
   };
 
+  const successLogin = (response:any) => {
+    console.log(response);
+    if (!response) return;
+
+    const authorities = response.authorities;
+    const userId = response.id;
+    if (!(userId) && isLogin === true) {
+      setIsLogin(false);
+    } else if (userId && isLogin === false) {
+      setIsLogin(true);        
+
+      // invoke the Redux action-setUserInfo to set user information
+      if (userId && userName && pass) {              
+        props.setUserInfo({
+          userID: userId,
+          userName: userName,
+          password: pass
+        });
+        props.setUserPermissions({
+          permissions: authorities
+        })
+
+        userName = "";
+        pass = "";
+
+        setIsLogin(false);
+
+        const welcome = window.location.href + "user/welcome";
+        window.location.href = welcome;
+      }
+    }
+  }
+
   const callLogin = () => {
     setIsError(false);
 
     let bodyFormData = new FormData();
     bodyFormData.append("username", userName);
-    bodyFormData.append("password", password);
-    console.log(bodyFormData);
+    bodyFormData.append("password", pass);
 
     // invoke the request from utils
     Services
       .login(bodyFormData)
       .then((response) => {
-        console.log(response);
-        if (response) {
-          const authorities = response.authorities;
-          const userId = response.id;
-          if (!(userId) && isLogin === true) {
-            setIsLogin(false);
-          } else if (userId && isLogin === false) {
-            setIsLogin(true);
-        
-
-            /*
-              set cookies and store
-            */            
-            userid = userId;
-            username = userName;
-            userkey = password;
-            permissions = authorities;
-            
-
-            // invoke the Redux action-setUserInfo to set user information
-            if (userid && username && userkey) {
-              loginCookies.set("username", userName, { path: "/", httpOnly:true });
-              loginCookies.set("userID", userId, { path: "/" });
-              
-              props.setUserInfo({
-                userID: userid,
-                userName: username,
-                password: userkey
-              });
-              props.setUserPermissions({
-                permissions: permissions
-              })
-              console.log(store.getState());
-
-              userid = 0;
-              username = "";
-              userkey = "";
-              permissions = [];
-
-              setIsLogin(false);
-
-              const welcome = window.location.href + "user/welcome";
-              window.location.href = welcome;
-            }
-          }
-        }
+        successLogin(response);
       })
       .catch((error) => {
         console.log(error);
@@ -134,7 +115,6 @@ export const Login: React.FC<Props> = props => {
             initialValues={{
               remember: true
             }}
-            onFinish={onFinish}
           >
             <Form.Item
               name="username"
@@ -152,7 +132,8 @@ export const Login: React.FC<Props> = props => {
                 value="username"
                 onChange={e => {
                   const name = e.target.value;
-                  setUserName(name);
+                  userName = name;
+                  setHasName(true);
                 }}
               />
             </Form.Item>
@@ -174,7 +155,8 @@ export const Login: React.FC<Props> = props => {
                 placeholder={t('password.1')}
                 onChange={e => {
                   const password = e.target.value;
-                  setPassword(password);
+                  pass = password;
+                  setHasKey(true);
                 }}
               />
             </Form.Item>
